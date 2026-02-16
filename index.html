@@ -1,0 +1,1112 @@
+<!doctype html>
+<html lang="pt-BR" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>BioForge: Respiratory Mastery</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      touch-action: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: #001a4d;
+    }
+
+    .bubble {
+      position: fixed;
+      bottom: -100px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.05));
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      pointer-events: none;
+      z-index: 1;
+      animation: float-up linear infinite;
+      box-shadow: inset -1px -1px 3px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes float-up {
+      0% {
+        bottom: -100px;
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        bottom: 110vh;
+        opacity: 0;
+      }
+    }
+
+    #game-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      background: linear-gradient(135deg, #001a4d 0%, #003366 50%, #004080 100%);
+    }
+
+    .tag {
+      position: fixed;
+      cursor: grab;
+      user-select: none;
+      padding: clamp(10px, 2vw, 16px);
+      border-radius: clamp(10px, 2vw, 16px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      color: #e2e8f0;
+      font-size: clamp(12px, 2.2vw, 16px);
+      font-weight: 600;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+      transition: none;
+      touch-action: none;
+      white-space: nowrap;
+      min-width: 120px;
+      backdrop-filter: blur(8px);
+    }
+
+    .tag:hover:not(.dragging):not(.correct) {
+      transform: translateY(-8px) scale(1.08);
+      box-shadow: 0 12px 32px rgba(59, 130, 246, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+      border-color: rgba(59, 130, 246, 0.5);
+    }
+
+    @media (hover: none) {
+      .tag:hover:not(.dragging):not(.correct) {
+        transform: none;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    .tag.dragging {
+      transform: scale(1.3) rotateZ(12deg);
+      box-shadow: 0 20px 48px rgba(59, 130, 246, 0.8), 0 0 40px rgba(59, 130, 246, 0.4);
+      z-index: 1000;
+      filter: brightness(1.2);
+      border-color: rgba(59, 130, 246, 0.8);
+    }
+
+    .tag.correct {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 12px 36px rgba(16, 185, 129, 0.7), 0 0 30px rgba(16, 185, 129, 0.3);
+      animation: snap 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+      color: #f0fdf4;
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    @keyframes snap {
+      0% { transform: scale(0.6) rotateZ(-25deg); opacity: 0.8; }
+      50% { transform: scale(1.35) rotateZ(8deg); }
+      100% { transform: scale(1) rotateZ(0deg); opacity: 1; }
+    }
+
+    @keyframes coinFloat {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-60px) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    .coin-effect {
+      position: fixed;
+      font-size: 28px;
+      pointer-events: none;
+      z-index: 1500;
+      animation: coinFloat 0.8s ease-out forwards;
+      user-select: none;
+      filter: drop-shadow(0 0 8px rgba(251, 146, 60, 0.6));
+    }
+
+    .ui-panel {
+      position: fixed;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: clamp(12px, 2vw, 16px);
+      padding: clamp(12px, 2.5vw, 18px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+      font-size: clamp(11px, 1.8vw, 13px);
+      font-weight: 600;
+      z-index: 500;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+    }
+
+    #info-panel {
+      top: clamp(10px, 2vw, 16px);
+      left: clamp(10px, 2vw, 16px);
+      max-width: 38vw;
+    }
+
+    .score {
+      color: #4ade80;
+      font-weight: 700;
+      margin-top: 6px;
+      font-size: clamp(11px, 1.8vw, 13px);
+      letter-spacing: 0.5px;
+    }
+
+    .coins-display {
+      color: #fbbf24;
+      font-weight: 700;
+      margin-top: 4px;
+      font-size: clamp(11px, 1.8vw, 13px);
+      letter-spacing: 0.5px;
+      animation: coinPulse 0.4s ease-out;
+    }
+
+    #time-display {
+      color: #60a5fa;
+      font-weight: 700;
+      margin-top: 4px;
+      font-size: clamp(11px, 1.8vw, 13px);
+      letter-spacing: 0.5px;
+    }
+
+    #performance-panel {
+      position: fixed;
+      bottom: clamp(10px, 2vw, 16px);
+      left: clamp(10px, 2vw, 16px);
+      display: flex;
+      gap: clamp(8px, 1.5vw, 12px);
+      align-items: center;
+      flex-wrap: wrap;
+      z-index: 500;
+    }
+
+    .perf-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(10, 200, 120, 0.15);
+      padding: clamp(8px, 1.5vw, 12px) clamp(10px, 1.8vw, 14px);
+      border-radius: clamp(8px, 1.5vw, 12px);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-size: clamp(10px, 1.6vw, 12px);
+      font-weight: 700;
+      color: #86efac;
+      backdrop-filter: blur(8px);
+    }
+
+    .perf-badge.time-warn {
+      background: rgba(251, 191, 36, 0.15);
+      border-color: rgba(251, 191, 36, 0.3);
+      color: #fde047;
+    }
+
+    .perf-badge.time-critical {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      animation: pulse-critical 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse-critical {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes coinPulse {
+      0% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    #phase-badge {
+      top: clamp(10px, 2vw, 16px);
+      right: clamp(10px, 2vw, 16px);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
+      color: #60a5fa;
+      padding: clamp(10px, 1.8vw, 14px) clamp(14px, 2.2vw, 18px);
+      border-radius: clamp(18px, 3vw, 24px);
+      font-size: clamp(10px, 1.8vw, 13px);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+      max-width: 38vw;
+      text-align: center;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    #phase-badge.p2 {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(126, 34, 206, 0.2) 100%);
+      color: #d8b4fe;
+      border-color: rgba(168, 85, 247, 0.3);
+      box-shadow: 0 8px 24px rgba(168, 85, 247, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    }
+
+    #phase-badge.p3 {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(190, 24, 93, 0.2) 100%);
+      color: #f472b6;
+      border-color: rgba(236, 72, 153, 0.3);
+      box-shadow: 0 8px 24px rgba(236, 72, 153, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    }
+
+    #phase-badge.p4 {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(180, 83, 9, 0.2) 100%);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.3);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    }
+
+    #phase-badge.p5 {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(8, 145, 178, 0.2) 100%);
+      color: #67e8f9;
+      border-color: rgba(6, 182, 212, 0.3);
+      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    }
+
+    .victory {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.5s ease;
+      backdrop-filter: blur(10px);
+      padding: clamp(14px, 4vw, 22px);
+      overflow-y: auto;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .victory-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-radius: clamp(16px, 4vw, 24px);
+      padding: clamp(24px, 6vw, 40px) clamp(18px, 5vw, 32px);
+      text-align: center;
+      width: 100%;
+      max-width: clamp(300px, 90vw, 520px);
+      box-shadow: 0 50px 120px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+      animation: pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.3); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .emoji {
+      font-size: clamp(56px, 18vw, 100px);
+      display: block;
+      margin-bottom: clamp(14px, 3.5vw, 20px);
+      animation: bounce 0.7s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-24px); }
+    }
+
+    .victory-card h2 {
+      font-size: clamp(20px, 6vw, 36px);
+      color: #f1f5f9;
+      margin-bottom: clamp(10px, 2.5vw, 14px);
+      font-weight: 800;
+      word-wrap: break-word;
+      letter-spacing: -0.5px;
+    }
+
+    #reward-container {
+      margin: clamp(18px, 4.5vw, 28px) 0;
+      max-height: 50vh;
+      overflow-y: auto;
+      border-radius: clamp(10px, 2vw, 14px);
+    }
+
+    .reward-media {
+      max-width: 100%;
+      border-radius: clamp(10px, 2vw, 14px);
+      display: block;
+      margin: 0 auto;
+      max-height: 40vh;
+      object-fit: cover;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    }
+
+    .victory-card p {
+      font-size: clamp(13px, 3.2vw, 18px);
+      color: #cbd5e1;
+      margin-bottom: clamp(18px, 4.5vw, 28px);
+      line-height: 1.7;
+      word-wrap: break-word;
+    }
+
+    .victory-card button {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(37, 99, 235, 0.8) 100%);
+      color: white;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      padding: clamp(12px, 3vw, 16px) clamp(22px, 4.5vw, 36px);
+      border-radius: clamp(18px, 3.5vw, 24px);
+      font-weight: 700;
+      cursor: pointer;
+      font-size: clamp(13px, 2.2vw, 15px);
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3), 0 0 20px rgba(59, 130, 246, 0.1);
+      width: 100%;
+      max-width: 300px;
+      -webkit-touch-callout: none;
+      backdrop-filter: blur(8px);
+    }
+
+    .victory-card button:active {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(59, 130, 246, 0.5), 0 0 30px rgba(59, 130, 246, 0.2);
+    }
+
+    @media (hover: hover) {
+      .victory-card button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(59, 130, 246, 0.5), 0 0 30px rgba(59, 130, 246, 0.2);
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .confetti {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1999;
+      animation: fall 4s ease-in forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(110vh) rotateZ(720deg);
+        opacity: 0;
+      }
+    }
+
+    @media (max-height: 600px) {
+      .ui-panel {
+        padding: 10px 14px;
+        font-size: 11px;
+      }
+
+      .emoji {
+        margin-bottom: 12px;
+      }
+
+      .victory-card {
+        padding: 20px 16px;
+      }
+    }
+  </style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body>
+  <div id="game-container">
+   <canvas id="canvas"></canvas>
+  </div>
+  <div id="info-panel" class="ui-panel">
+   <div id="phase-name" style="letter-spacing: 0.5px;">
+    FASE 1: TRONCO
+   </div>
+   <div class="score">
+    ✓ <span id="score">0</span>/<span id="total">15</span>
+   </div>
+   <div class="coins-display">
+    💰 <span id="coins">0</span>
+   </div>
+   <div id="time-display">
+    ⏱️ <span id="timer">0:00</span>
+   </div>
+  </div>
+  <div id="performance-panel">
+   <div id="perf-time" class="perf-badge">
+    ⚡ Perfeito
+   </div>
+   <div id="perf-score" class="perf-badge">
+    🎯 Desempenho
+   </div>
+  </div>
+  <div id="phase-badge" class="ui-panel">
+   🌳 FASE 1
+  </div>
+  <div id="victory-screen" class="victory hidden">
+   <div class="victory-card">
+    <span class="emoji" id="emoji">🎉</span>
+    <h2 id="victory-title"></h2>
+    <div id="reward-container"></div>
+    <p id="v-text"></p><button id="v-btn"></button>
+   </div>
+  </div>
+  <script>
+    // Criar bolhas flutuantes
+    function createBubbles() {
+      const bubbleCount = 15;
+      const container = document.body;
+
+      for (let i = 0; i < bubbleCount; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        
+        // Tamanho aleatório entre 20px e 80px
+        const size = Math.random() * 60 + 20;
+        bubble.style.width = size + 'px';
+        bubble.style.height = size + 'px';
+        
+        // Posição horizontal aleatória
+        bubble.style.left = Math.random() * 100 + '%';
+        
+        // Duração aleatória entre 12s e 25s para movimento lento
+        const duration = Math.random() * 13 + 12;
+        bubble.style.animationDuration = duration + 's';
+        
+        // Delay aleatório para começar em tempos diferentes
+        bubble.style.animationDelay = Math.random() * 5 + 's';
+        
+        container.appendChild(bubble);
+        
+        // Recrear a bolha quando a animação termina
+        bubble.addEventListener('animationend', () => {
+          bubble.remove();
+          createBubbles();
+        });
+      }
+    }
+
+    // Configuração de recompensas por fase
+    const caminhosRecompensas = {
+      1: {
+        emoji: '🌳',
+        title: 'Tronco Dominado!',
+        description: 'Você entendeu o tronco principal! Agora explore a árvore brônquica!',
+        assetPath: 'assets/recompensas/fase1/fase1.png',
+        assetType: 'image',
+        nextPhaseButton: '🌿 PRÓXIMA FASE'
+      },
+      2: {
+        emoji: '🌿',
+        title: 'Árvore Brônquica Conquistada!',
+        description: 'Excelente! Você dominou brônquios, bronquíolos e toda a ramificação!',
+        assetPath: 'assets/recompensas/fase2/fase2.png',
+        assetType: 'image',
+        nextPhaseButton: '💨 PRÓXIMA FASE'
+      },
+      3: {
+        emoji: '💨',
+        title: 'Alvéolos Conquistados!',
+        description: 'Incrível! Você explorou toda a árvore respiratória até os alvéolos!',
+        assetPath: 'assets/recompensas/fase3/fase3.png',
+        assetType: 'image',
+        nextPhaseButton: '🔬 PRÓXIMA FASE'
+      },
+      4: {
+        emoji: '🧼',
+        title: 'Filtração Nasal Dominada!',
+        description: 'Excelente! Você dominou todos os mecanismos de filtração do ar pelo nariz!',
+        assetPath: 'assets/recompensas/fase4/fase4.png',
+        assetType: 'image',
+        nextPhaseButton: '📿 PRÓXIMA FASE'
+      },
+      5: {
+        emoji: '📿',
+        title: '🏆 MESTRE DA TRAQUEIA!',
+        description: 'Parabéns! Você dominou toda a anatomia e fisiologia da traqueia!',
+        assetPath: 'assets/recompensas/fase5/videos.mp4',
+        assetType: 'video',
+        nextPhaseButton: '🔄 RECOMEÇAR'
+      }
+    };
+
+    // Cores por fase
+    const fasesCores = {
+      1: { bg: '#dbeafe', stroke: '#0284c7' },
+      2: { bg: '#f0e5ff', stroke: '#a855f7' },
+      3: { bg: '#ffe0ec', stroke: '#be185d' },
+      4: { bg: '#fef3c7', stroke: '#d97706' },
+      5: { bg: '#cffafe', stroke: '#0891b2' }
+    };
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      draw();
+    });
+
+    const FASES = {
+      1: [
+        { nome: 'Nariz', icon: '👃' },
+        { nome: 'Fossas Nasais', icon: '🏛️' },
+        { nome: 'Faringe', icon: '🗣️' },
+        { nome: 'Laringe', icon: '📢' },
+        { nome: 'Epiglote', icon: '🚪' },
+        { nome: 'Traqueia', icon: '🌳' },
+        { nome: 'Carina Traqueal', icon: '🔀' },
+        { nome: 'Bifurcação Traqueal', icon: '⛔' },
+        { nome: 'Brônquio Direito', icon: '➡️' },
+        { nome: 'Brônquio Esquerdo', icon: '⬅️' },
+        { nome: 'Ângulo Ramif.', icon: '📐' },
+        { nome: 'Diâmetro Direito', icon: '⭕' },
+        { nome: 'Diâmetro Esquerdo', icon: '⭕' },
+        { nome: 'Pulmão Direito', icon: '💨' },
+        { nome: 'Pulmão Esquerdo', icon: '💨' }
+      ],
+      2: [
+        { nome: 'Carina - Bifurcação Traqueal', icon: '🔀' },
+        { nome: 'Brônquio Principal Direito', icon: '➡️' },
+        { nome: 'Brônquio Principal Esquerdo', icon: '⬅️' },
+        { nome: 'Brônquios com Cartilagem', icon: '💎' },
+        { nome: 'Brônquios Lobares (2º Ordem)', icon: '🌿' },
+        { nome: 'Lobar Sup. Direito', icon: '⬆️' },
+        { nome: 'Lobar Médio Direito', icon: '➡️' },
+        { nome: 'Lobar Inf. Direito', icon: '⬇️' },
+        { nome: 'Lobar Sup. Esquerdo', icon: '⬆️' },
+        { nome: 'Lobar Inf. Esquerdo', icon: '⬇️' },
+        { nome: 'Brônquios Segmentares (3º)', icon: '🌳' },
+        { nome: 'Bronquíolos - Menos de 1 mm', icon: '💧' },
+        { nome: 'Bronquíolos SEM Cartilagem', icon: '❌' },
+        { nome: 'Bronquíolos SEM Glândulas', icon: '🚫' },
+        { nome: 'Bronquíolos com Músculo Liso', icon: '💪' },
+        { nome: 'Bronquíolos Terminais', icon: '🔚' },
+        { nome: 'Bronquíolos Respiratórios', icon: '💨' },
+        { nome: 'Paredes Finas dos Bronquíolos', icon: '📄' },
+        { nome: 'Broncoconstrição/Dilatação', icon: '🔄' },
+        { nome: 'Distribuição e Regulação de Ar', icon: '🌬️' }
+      ],
+      3: [
+        { nome: 'Brônquio Seg. 1', icon: '🍃' },
+        { nome: 'Brônquio Seg. 2', icon: '🍃' },
+        { nome: 'Brônquio Seg. 3', icon: '🍃' },
+        { nome: 'Brônquio Seg. 4', icon: '🍃' },
+        { nome: 'Brônquio Seg. 5', icon: '🍃' },
+        { nome: 'Bronquíolo Term. Dir.', icon: '🌿' },
+        { nome: 'Bronquíolo Term. Esq.', icon: '🌿' },
+        { nome: 'Sem Cartilagem', icon: '❌' },
+        { nome: 'Com Músculos', icon: '💪' },
+        { nome: 'Bronquíolo Resp. 1', icon: '💨' },
+        { nome: 'Bronquíolo Resp. 2', icon: '💨' },
+        { nome: 'Duto Alveolar Dir.', icon: '🔗' },
+        { nome: 'Duto Alveolar Esq.', icon: '🔗' },
+        { nome: 'Sacos Alveolares', icon: '🏠' },
+        { nome: 'Alvéolos', icon: '💧' },
+        { nome: 'Pneumócitos Tipo I', icon: '📍' },
+        { nome: 'Pneumócitos Tipo II', icon: '🔹' },
+        { nome: 'Barreira Hematoaérea', icon: '🔗' },
+        { nome: 'Troca de O2', icon: '⚡' },
+        { nome: 'Troca de CO2', icon: '💨' }
+      ],
+      4: [
+        { nome: 'Pelos Nasais (Vibrissas)', icon: '🧵' },
+        { nome: 'Filtração Mecânica', icon: '🔱' },
+        { nome: 'Conchas Nasais (Cornetos)', icon: '🌊' },
+        { nome: 'Turbulência do Ar', icon: '💨' },
+        { nome: 'Filtração por Impacto', icon: '⚡' },
+        { nome: 'Mucosa Nasal', icon: '🧬' },
+        { nome: 'Muco Viscoso', icon: '💧' },
+        { nome: 'Partículas Retidas', icon: '🚫' },
+        { nome: 'Cílios Microscópicos', icon: '👋' },
+        { nome: 'Transporte Mucociliar', icon: '🔄' },
+        { nome: 'Umidificação', icon: '💦' },
+        { nome: 'Aquecimento do Ar', icon: '🔥' },
+        { nome: 'Faringe', icon: '🗣️' },
+        { nome: 'Eliminação/Tosse', icon: '🤧' }
+      ],
+      5: [
+        { nome: 'Tubo Cilíndrico Flexível', icon: '📿' },
+        { nome: 'Anéis Cartilaginosos (C)', icon: '🔄' },
+        { nome: '15 a 20 Anéis de Cartilagem', icon: '⭕' },
+        { nome: 'Cartilagem Hialina', icon: '💎' },
+        { nome: 'Parede Posterior Membranosa', icon: '🧵' },
+        { nome: 'Músculo Traqueal', icon: '💪' },
+        { nome: 'Epitélio Pseudoestratificado', icon: '🏢' },
+        { nome: 'Epitélio Respiratório', icon: '🫁' },
+        { nome: 'Células Caliciformes', icon: '🔹' },
+        { nome: 'Produção de Muco', icon: '💧' },
+        { nome: 'Cílios Microscópicos', icon: '👋' },
+        { nome: 'Transporte Mucociliar', icon: '🔄' },
+        { nome: 'Comprimento: 10-12,5 cm', icon: '📏' },
+        { nome: 'Diâmetro: 2,5 cm', icon: '⭕' },
+        { nome: 'Laringe → Carina', icon: '📍' },
+        { nome: 'Anterior ao Esôfago', icon: '🗣️' },
+        { nome: 'Vértebra Torácica 4-5', icon: '🦴' },
+        { nome: 'Inervação: Nervo Vago', icon: '🧠' },
+        { nome: 'Irrigação: Art. Tireóideas', icon: '💉' },
+        { nome: 'Defesa contra Patógenos', icon: '🛡️' }
+      ]
+    };
+
+    let phase = 1;
+    let score = 0;
+    let coins = 0;
+    let tags = [];
+    let slots = [];
+    let draggedTag = null;
+    let offsetX = 0;
+    let offsetY = 0;
+    let phaseStartTime = 0;
+    let phaseElapsedTime = 0;
+    let timerInterval = null;
+
+    function playSound(type) {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioContext.currentTime;
+
+        if (type === 'coin') {
+          const osc1 = audioContext.createOscillator();
+          const osc2 = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+
+          osc1.type = 'sine';
+          osc2.type = 'sine';
+          osc1.frequency.setValueAtTime(800, now);
+          osc2.frequency.setValueAtTime(1200, now);
+          
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(audioContext.destination);
+          
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+          
+          osc1.start(now);
+          osc1.stop(now + 0.15);
+          osc2.start(now);
+          osc2.stop(now + 0.15);
+        } else if (type === 'victory') {
+          const notes = [523.25, 659.25, 783.99];
+          notes.forEach((freq, idx) => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            
+            osc.start(now + idx * 0.05);
+            osc.stop(now + 0.6);
+          });
+        }
+      } catch (e) {
+        console.log('Som desabilitado');
+      }
+    }
+
+    function createCoinEffect(x, y) {
+      const coin = document.createElement('div');
+      coin.className = 'coin-effect';
+      coin.style.left = x + 'px';
+      coin.style.top = y + 'px';
+      coin.textContent = '💰';
+      document.body.appendChild(coin);
+      
+      setTimeout(() => coin.remove(), 800);
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimer() {
+      const currentTime = Math.floor((Date.now() - phaseStartTime) / 1000) + phaseElapsedTime;
+      document.getElementById('timer').textContent = formatTime(currentTime);
+      updatePerformance(currentTime);
+    }
+
+    function updatePerformance(timeElapsed) {
+      const perfTime = document.getElementById('perf-time');
+      const perfScore = document.getElementById('perf-score');
+      
+      if (timeElapsed < 30) {
+        perfTime.textContent = '⚡ Relâmpago';
+        perfTime.className = 'perf-badge';
+      } else if (timeElapsed < 60) {
+        perfTime.textContent = '✨ Ótimo';
+        perfTime.className = 'perf-badge';
+      } else if (timeElapsed < 120) {
+        perfTime.textContent = '⚠️ Aviso';
+        perfTime.className = 'perf-badge time-warn';
+      } else {
+        perfTime.textContent = '🔴 Crítico';
+        perfTime.className = 'perf-badge time-critical';
+      }
+
+      const coinsPerItem = coins / tags.length;
+      if (coinsPerItem >= 10) {
+        perfScore.textContent = '💯 Perfeito';
+        perfScore.className = 'perf-badge';
+      } else if (coinsPerItem >= 8) {
+        perfScore.textContent = '⭐ Excelente';
+        perfScore.className = 'perf-badge';
+      } else if (coinsPerItem >= 5) {
+        perfScore.textContent = '👍 Bom';
+        perfScore.className = 'perf-badge';
+      } else {
+        perfScore.textContent = '📚 Estudando';
+        perfScore.className = 'perf-badge time-warn';
+      }
+    }
+
+    class Tag {
+      constructor(data, x, y) {
+        this.data = data;
+        this.x = x;
+        this.y = y;
+        this.width = Math.max(140, Math.min(220, window.innerWidth * 0.22));
+        this.height = 48;
+        this.snapped = false;
+        this.el = null;
+        this.createEl();
+      }
+
+      createEl() {
+        this.el = document.createElement('div');
+        this.el.className = 'tag';
+        this.el.textContent = `${this.data.icon} ${this.data.nome}`;
+        this.el.style.left = this.x + 'px';
+        this.el.style.top = this.y + 'px';
+        this.el.style.width = this.width + 'px';
+
+        const start = (e) => {
+          if (this.snapped) return;
+          e.preventDefault();
+          draggedTag = this;
+          const rect = e.type.includes('touch') ? e.touches[0] : e;
+          offsetX = rect.clientX - this.x;
+          offsetY = rect.clientY - this.y;
+          this.el.classList.add('dragging');
+        };
+
+        this.el.addEventListener('mousedown', start);
+        this.el.addEventListener('touchstart', start, { passive: false });
+        document.body.appendChild(this.el);
+      }
+
+      move(x, y) {
+        this.x = Math.max(0, Math.min(x, window.innerWidth - this.width));
+        this.y = Math.max(0, Math.min(y, window.innerHeight - this.height));
+        this.el.style.left = this.x + 'px';
+        this.el.style.top = this.y + 'px';
+      }
+
+      snap(slot) {
+        this.x = slot.x;
+        this.y = slot.y;
+        this.snapped = true;
+        this.el.classList.remove('dragging');
+        this.el.classList.add('correct');
+        this.move(this.x, this.y);
+        this.el.style.pointerEvents = 'none';
+      }
+
+      remove() {
+        if (this.el) this.el.remove();
+      }
+    }
+
+    function initPhase(p) {
+      tags.forEach(t => t.remove());
+      tags = [];
+      slots = [];
+      score = 0;
+      phaseStartTime = Date.now();
+
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 100);
+
+      const data = FASES[p];
+      const isMobile = window.innerWidth < 768;
+      const slotStartY = Math.max(70, window.innerHeight * 0.1);
+      const slotSpacing = Math.min(56, (window.innerHeight - 140) / data.length);
+      const slotWidth = Math.max(140, Math.min(220, window.innerWidth * 0.22));
+      const centerX = window.innerWidth / 2;
+      const distance = isMobile ? Math.max(160, window.innerWidth * 0.28) : Math.max(320, window.innerWidth * 0.32);
+
+      data.forEach((item, i) => {
+        const isRight = i % 2 === 1;
+        const slotX = isRight ? centerX + distance : centerX - distance - slotWidth;
+        
+        slots.push({ x: slotX, y: slotStartY + i * slotSpacing, width: slotWidth, height: 48, nome: item.nome });
+        const tx = Math.random() * (window.innerWidth * 0.3) + 10;
+        const ty = window.innerHeight * 0.15 + Math.random() * (window.innerHeight * 0.7);
+        const tag = new Tag(item, tx, ty);
+        tags.push(tag);
+      });
+
+      updateUI();
+    }
+
+    function updateUI() {
+      document.getElementById('score').textContent = score;
+      document.getElementById('total').textContent = tags.length;
+      document.getElementById('coins').textContent = coins;
+    }
+
+    function createConfetti() {
+      const colors = ['#4ade80', '#60a5fa', '#fcd34d', '#fb7185', '#d8b4fe'];
+      for (let i = 0; i < 120; i++) {
+        setTimeout(() => {
+          const c = document.createElement('div');
+          c.className = 'confetti';
+          c.style.left = Math.random() * 100 + '%';
+          c.style.top = '-20px';
+          c.style.width = Math.random() * 8 + 3 + 'px';
+          c.style.height = c.style.width;
+          c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          c.style.borderRadius = '50%';
+          c.style.boxShadow = `0 0 12px ${c.style.backgroundColor}`;
+          document.body.appendChild(c);
+          setTimeout(() => c.remove(), 4000);
+        }, i * 8);
+      }
+    }
+
+    function renderRewardMedia(reward, container) {
+      container.innerHTML = '';
+      
+      if (reward.assetType === 'image') {
+        const img = document.createElement('img');
+        img.src = reward.assetPath;
+        img.className = 'reward-media';
+        img.loading = 'lazy';
+        img.style.border = '2px solid rgba(59, 130, 246, 0.3)';
+        img.onerror = () => {
+          img.style.display = 'none';
+          const placeholder = document.createElement('div');
+          placeholder.style.cssText = 'width: 100%; height: 200px; background: linear-gradient(135deg, #1e293b, #334155); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 14px;';
+          placeholder.textContent = `Imagem indisponível: ${reward.assetPath}`;
+          container.appendChild(placeholder);
+        };
+        container.appendChild(img);
+      } else if (reward.assetType === 'video') {
+        const video = document.createElement('video');
+        video.src = reward.assetPath;
+        video.className = 'reward-media';
+        video.style.border = '2px solid rgba(6, 182, 212, 0.3)';
+        video.style.backgroundColor = '#000';
+        video.autoplay = true;
+        video.controls = true;
+        video.onerror = () => {
+          video.style.display = 'none';
+          const placeholder = document.createElement('div');
+          placeholder.style.cssText = 'width: 100%; height: 300px; background: linear-gradient(135deg, #1e293b, #334155); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 14px; text-align: center; padding: 20px;';
+          placeholder.textContent = `Vídeo indisponível: ${reward.assetPath}`;
+          container.appendChild(placeholder);
+        };
+        container.appendChild(video);
+      }
+    }
+
+    function showVictory() {
+      if (timerInterval) clearInterval(timerInterval);
+      
+      createConfetti();
+      playSound('victory');
+      const screen = document.getElementById('victory-screen');
+      const container = document.getElementById('reward-container');
+      const emoji = document.getElementById('emoji');
+      const title = document.getElementById('victory-title');
+      const text = document.getElementById('v-text');
+      const btn = document.getElementById('v-btn');
+
+      const reward = caminhosRecompensas[phase];
+      const finalTime = Math.floor((Date.now() - phaseStartTime) / 1000) + phaseElapsedTime;
+
+      emoji.textContent = reward.emoji;
+      title.textContent = reward.title;
+      text.textContent = `${reward.description}\n\n⏱️ Tempo: ${formatTime(finalTime)}\n💰 Total de moedas: ${coins}`;
+      btn.textContent = reward.nextPhaseButton;
+
+      renderRewardMedia(reward, container);
+
+      if (phase < 5) {
+        btn.onclick = () => {
+          phase++;
+          screen.classList.add('hidden');
+          nextPhase();
+        };
+      } else {
+        btn.onclick = () => {
+          phase = 1;
+          coins = 0;
+          phaseElapsedTime = 0;
+          screen.classList.add('hidden');
+          nextPhase();
+        };
+      }
+
+      screen.classList.remove('hidden');
+    }
+
+    function nextPhase() {
+      document.getElementById('phase-badge').className = 'ui-panel';
+      
+      const phaseNames = {
+        1: { name: 'FASE 1: TRONCO', badge: '🌳 FASE 1' },
+        2: { name: 'FASE 2: ÁRVORE BRÔNQUICA', badge: '🌿 FASE 2' },
+        3: { name: 'FASE 3: ALVÉOLOS', badge: '💨 FASE 3' },
+        4: { name: 'FASE 4: FILTRAÇÃO NASAL', badge: '🧼 FASE 4' },
+        5: { name: 'FASE 5: TRAQUEIA', badge: '📿 FASE 5' }
+      };
+
+      const phaseBadges = { 1: '', 2: 'p2', 3: 'p3', 4: 'p4', 5: 'p5' };
+
+      document.getElementById('phase-name').textContent = phaseNames[phase].name;
+      document.getElementById('phase-badge').textContent = phaseNames[phase].badge;
+      if (phaseBadges[phase]) {
+        document.getElementById('phase-badge').classList.add(phaseBadges[phase]);
+      }
+
+      initPhase(phase);
+      draw();
+    }
+
+    function draw() {
+      ctx.fillStyle = '#001a4d';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const c = fasesCores[phase];
+
+      if (slots.length > 0) {
+        const centerX = canvas.width / 2;
+        
+        ctx.strokeStyle = c.stroke;
+        ctx.lineWidth = Math.max(2.5, canvas.width * 0.004);
+        ctx.globalAlpha = 0.25;
+        ctx.beginPath();
+        ctx.moveTo(centerX, slots[0].y - 20);
+        ctx.lineTo(centerX, slots[slots.length - 1].y + slots[slots.length - 1].height + 20);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        slots.forEach((slot, i) => {
+          const isRight = i % 2 === 1;
+          
+          ctx.strokeStyle = c.stroke;
+          ctx.lineWidth = Math.max(2, canvas.width * 0.0025);
+          ctx.globalAlpha = 0.3;
+          ctx.beginPath();
+          ctx.moveTo(centerX, slot.y + slot.height / 2);
+          ctx.lineTo(isRight ? slot.x : slot.x + slot.width, slot.y + slot.height / 2);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+
+          ctx.fillStyle = c.bg;
+          ctx.strokeStyle = c.stroke;
+          ctx.lineWidth = Math.max(2, canvas.width * 0.0025);
+          ctx.beginPath();
+          ctx.roundRect(slot.x, slot.y, slot.width, slot.height, 6);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = c.stroke;
+          ctx.font = `bold ${Math.max(20, canvas.width * 0.03)}px Sora`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('?', slot.x + slot.width / 2, slot.y + slot.height / 2);
+        });
+      }
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = `bold ${Math.max(16, canvas.width * 0.028)}px Sora`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      const titles = { 1: '🌳 TRONCO', 2: '🌿 ÁRVORE BRÔNQUICA', 3: '💨 ALVÉOLOS', 4: '🧼 FILTRAÇÃO NASAL', 5: '📿 TRAQUEIA' };
+      ctx.fillText(titles[phase], 32, 18);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `600 ${Math.max(12, canvas.width * 0.016)}px Sora`;
+      ctx.fillText('✋ Arraste os rótulos para os espaços corretos', 32, canvas.height - 22);
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      if (draggedTag && !draggedTag.snapped) draggedTag.move(e.clientX - offsetX, e.clientY - offsetY);
+    });
+
+    document.addEventListener('touchmove', (e) => {
+      if (draggedTag && !draggedTag.snapped) draggedTag.move(e.touches[0].clientX - offsetX, e.touches[0].clientY - offsetY);
+    }, { passive: false });
+
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
+
+    function endDrag() {
+      if (!draggedTag) return;
+      draggedTag.el.classList.remove('dragging');
+
+      for (let slot of slots) {
+        const dist = Math.hypot((draggedTag.x + draggedTag.width/2) - (slot.x + slot.width/2), (draggedTag.y + draggedTag.height/2) - (slot.y + slot.height/2));
+        if (dist < 100 && slot.nome === draggedTag.data.nome) {
+          draggedTag.snap(slot);
+          score++;
+          coins += 10;
+          
+          createCoinEffect(draggedTag.x + draggedTag.width / 2, draggedTag.y);
+          playSound('coin');
+          
+          updateUI();
+          if (score === tags.length) setTimeout(showVictory, 500);
+          break;
+        }
+      }
+      draggedTag = null;
+      draw();
+    }
+
+    // Iniciar criação de bolhas
+    createBubbles();
+
+    initPhase(1);
+    draw();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ceb27b5a3d3d283',t:'MTc3MTIyNTA5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
