@@ -514,21 +514,20 @@
 
     const caminhosRecompensas = {
   1: {
-    emoji: '🌳',
-    title: 'Vias aéreas Dominadas!',
-    description: 'Você entendeu as vias aéreas! Agora explore a árvore brônquica!',
-    assetPath: 'assets/recompensas/fase1/videos.mp4', // Corrigido: assets e sem acento
+    // ... manter emojis e títulos
+    assetPath: 'assets/recompensas/fase1/videos.mp4?v=' + Date.now(), 
     assetType: 'video',
     nextPhaseButton: '🌿 PRÓXIMA FASE'
   },
   2: {
-    emoji: '🌿',
-    title: 'Árvore Brônquica Conquistada!',
-    description: 'Excelente! Você dominou brônquios, bronquíolos e toda a ramificação!',
-    assetPath: 'assets/recompensas/fase2/fase2.png',
+    // ... manter emojis e títulos
+    assetPath: 'assets/recompensas/fase2/fase2.png?v=' + Date.now(), 
     assetType: 'image',
     nextPhaseButton: '💨 PRÓXIMA FASE'
   },
+  // Repita o ?v=' + Date.now() para as outras fases
+};
+
   3: {
     emoji: '💨',
     title: 'Alvéolos Conquistados!',
