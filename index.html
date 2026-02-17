@@ -7,6 +7,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>BioForge: Respiratory Mastery</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
   <style>
     * {
       margin: 0;
@@ -77,24 +79,33 @@
       position: fixed;
       cursor: grab;
       user-select: none;
-      padding: clamp(10px, 2vw, 16px);
-      border-radius: clamp(10px, 2vw, 16px);
+      padding: clamp(6px, 1.2vw, 12px);
+      border-radius: clamp(6px, 1vw, 12px);
       border: 2px solid rgba(255, 255, 255, 0.2);
       background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
       color: #e2e8f0;
-      font-size: clamp(12px, 2.2vw, 16px);
+      font-size: clamp(8px, 1.2vw, 11px);
       font-weight: 600;
       z-index: 100;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.1);
       transition: none;
       touch-action: none;
-      white-space: nowrap;
-      min-width: 120px;
+      white-space: normal;
+      word-wrap: break-word;
       backdrop-filter: blur(8px);
+      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-width: clamp(100px, 18vw, 200px);
+      max-width: clamp(110px, 20vw, 240px);
+      min-height: clamp(38px, 6vh, 60px);
+      max-height: clamp(44px, 8vh, 70px);
     }
 
     .tag:hover:not(.dragging):not(.correct) {
-      transform: translateY(-8px) scale(1.08);
+      transform: translateY(-6px) scale(1.05);
       box-shadow: 0 12px 32px rgba(59, 130, 246, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.15);
       border-color: rgba(59, 130, 246, 0.5);
     }
@@ -107,7 +118,7 @@
     }
 
     .tag.dragging {
-      transform: scale(1.3) rotateZ(12deg);
+      transform: scale(1.2) rotateZ(8deg);
       box-shadow: 0 20px 48px rgba(59, 130, 246, 0.8), 0 0 40px rgba(59, 130, 246, 0.4);
       z-index: 1000;
       filter: brightness(1.2);
@@ -125,7 +136,7 @@
 
     @keyframes snap {
       0% { transform: scale(0.6) rotateZ(-25deg); opacity: 0.8; }
-      50% { transform: scale(1.35) rotateZ(8deg); }
+      50% { transform: scale(1.25) rotateZ(8deg); }
       100% { transform: scale(1) rotateZ(0deg); opacity: 1; }
     }
 
@@ -142,7 +153,7 @@
 
     .coin-effect {
       position: fixed;
-      font-size: 28px;
+      font-size: clamp(18px, 5vw, 28px);
       pointer-events: none;
       z-index: 1500;
       animation: coinFloat 0.8s ease-out forwards;
@@ -154,10 +165,10 @@
       position: fixed;
       background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(12px);
-      border-radius: clamp(12px, 2vw, 16px);
-      padding: clamp(12px, 2.5vw, 18px);
+      border-radius: clamp(8px, 1.5vw, 14px);
+      padding: clamp(8px, 1.5vw, 14px);
       box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.1);
-      font-size: clamp(11px, 1.8vw, 13px);
+      font-size: clamp(9px, 1.4vw, 11px);
       font-weight: 600;
       z-index: 500;
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -165,24 +176,24 @@
     }
 
     #info-panel {
-      top: clamp(10px, 2vw, 16px);
-      left: clamp(10px, 2vw, 16px);
-      max-width: 38vw;
+      top: clamp(6px, 1.5vw, 12px);
+      left: clamp(6px, 1.5vw, 12px);
+      max-width: 45vw;
     }
 
     .score {
       color: #4ade80;
       font-weight: 700;
-      margin-top: 6px;
-      font-size: clamp(11px, 1.8vw, 13px);
+      margin-top: 4px;
+      font-size: clamp(8px, 1.2vw, 10px);
       letter-spacing: 0.5px;
     }
 
     .coins-display {
       color: #fbbf24;
       font-weight: 700;
-      margin-top: 4px;
-      font-size: clamp(11px, 1.8vw, 13px);
+      margin-top: 3px;
+      font-size: clamp(8px, 1.2vw, 10px);
       letter-spacing: 0.5px;
       animation: coinPulse 0.4s ease-out;
     }
@@ -190,31 +201,32 @@
     #time-display {
       color: #60a5fa;
       font-weight: 700;
-      margin-top: 4px;
-      font-size: clamp(11px, 1.8vw, 13px);
+      margin-top: 3px;
+      font-size: clamp(8px, 1.2vw, 10px);
       letter-spacing: 0.5px;
     }
 
     #performance-panel {
       position: fixed;
-      bottom: clamp(10px, 2vw, 16px);
-      left: clamp(10px, 2vw, 16px);
+      bottom: clamp(6px, 1.5vw, 12px);
+      left: clamp(6px, 1.5vw, 12px);
       display: flex;
-      gap: clamp(8px, 1.5vw, 12px);
+      gap: clamp(4px, 1vw, 8px);
       align-items: center;
       flex-wrap: wrap;
       z-index: 500;
+      max-width: 50vw;
     }
 
     .perf-badge {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 3px;
       background: rgba(10, 200, 120, 0.15);
-      padding: clamp(8px, 1.5vw, 12px) clamp(10px, 1.8vw, 14px);
-      border-radius: clamp(8px, 1.5vw, 12px);
+      padding: clamp(4px, 0.8vw, 8px) clamp(6px, 1.2vw, 10px);
+      border-radius: clamp(6px, 1vw, 10px);
       border: 1px solid rgba(16, 185, 129, 0.3);
-      font-size: clamp(10px, 1.6vw, 12px);
+      font-size: clamp(7px, 1vw, 9px);
       font-weight: 700;
       color: #86efac;
       backdrop-filter: blur(8px);
@@ -244,15 +256,15 @@
     }
 
     #phase-badge {
-      top: clamp(10px, 2vw, 16px);
-      right: clamp(10px, 2vw, 16px);
+      top: clamp(6px, 1.5vw, 12px);
+      right: clamp(6px, 1.5vw, 12px);
       background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
       color: #60a5fa;
-      padding: clamp(10px, 1.8vw, 14px) clamp(14px, 2.2vw, 18px);
-      border-radius: clamp(18px, 3vw, 24px);
-      font-size: clamp(10px, 1.8vw, 13px);
+      padding: clamp(6px, 1.2vw, 10px) clamp(10px, 1.8vw, 14px);
+      border-radius: clamp(14px, 2.5vw, 20px);
+      font-size: clamp(8px, 1.2vw, 10px);
       box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1);
-      max-width: 38vw;
+      max-width: 45vw;
       text-align: center;
       border: 1px solid rgba(59, 130, 246, 0.3);
     }
@@ -298,7 +310,7 @@
       z-index: 2000;
       animation: fadeIn 0.5s ease;
       backdrop-filter: blur(10px);
-      padding: clamp(14px, 4vw, 22px);
+      padding: clamp(10px, 3vw, 18px);
       overflow-y: auto;
     }
 
@@ -309,11 +321,11 @@
 
     .victory-card {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      border-radius: clamp(16px, 4vw, 24px);
-      padding: clamp(24px, 6vw, 40px) clamp(18px, 5vw, 32px);
+      border-radius: clamp(12px, 3vw, 20px);
+      padding: clamp(16px, 4vw, 32px) clamp(12px, 3.5vw, 24px);
       text-align: center;
       width: 100%;
-      max-width: clamp(300px, 90vw, 520px);
+      max-width: clamp(280px, 90vw, 480px);
       box-shadow: 0 50px 120px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1);
       animation: pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -327,48 +339,48 @@
     }
 
     .emoji {
-      font-size: clamp(56px, 18vw, 100px);
+      font-size: clamp(48px, 15vw, 80px);
       display: block;
-      margin-bottom: clamp(14px, 3.5vw, 20px);
+      margin-bottom: clamp(10px, 2.5vw, 16px);
       animation: bounce 0.7s ease-in-out infinite;
     }
 
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-24px); }
+      50% { transform: translateY(-20px); }
     }
 
     .victory-card h2 {
-      font-size: clamp(20px, 6vw, 36px);
+      font-size: clamp(18px, 5vw, 28px);
       color: #f1f5f9;
-      margin-bottom: clamp(10px, 2.5vw, 14px);
+      margin-bottom: clamp(8px, 2vw, 12px);
       font-weight: 800;
       word-wrap: break-word;
       letter-spacing: -0.5px;
     }
 
     #reward-container {
-      margin: clamp(18px, 4.5vw, 28px) 0;
-      max-height: 50vh;
+      margin: clamp(12px, 3vw, 20px) 0;
+      max-height: 45vh;
       overflow-y: auto;
-      border-radius: clamp(10px, 2vw, 14px);
+      border-radius: clamp(8px, 1.5vw, 12px);
     }
 
     .reward-media {
       max-width: 100%;
-      border-radius: clamp(10px, 2vw, 14px);
+      border-radius: clamp(8px, 1.5vw, 12px);
       display: block;
       margin: 0 auto;
-      max-height: 40vh;
+      max-height: 35vh;
       object-fit: cover;
       box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.1);
     }
 
     .victory-card p {
-      font-size: clamp(13px, 3.2vw, 18px);
+      font-size: clamp(11px, 2.5vw, 14px);
       color: #cbd5e1;
-      margin-bottom: clamp(18px, 4.5vw, 28px);
-      line-height: 1.7;
+      margin-bottom: clamp(12px, 3vw, 20px);
+      line-height: 1.6;
       word-wrap: break-word;
     }
 
@@ -376,27 +388,27 @@
       background: linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(37, 99, 235, 0.8) 100%);
       color: white;
       border: 1px solid rgba(59, 130, 246, 0.4);
-      padding: clamp(12px, 3vw, 16px) clamp(22px, 4.5vw, 36px);
-      border-radius: clamp(18px, 3.5vw, 24px);
+      padding: clamp(10px, 2.5vw, 14px) clamp(16px, 3.5vw, 28px);
+      border-radius: clamp(14px, 2.5vw, 20px);
       font-weight: 700;
       cursor: pointer;
-      font-size: clamp(13px, 2.2vw, 15px);
+      font-size: clamp(11px, 1.8vw, 13px);
       transition: all 0.3s ease;
       box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3), 0 0 20px rgba(59, 130, 246, 0.1);
       width: 100%;
-      max-width: 300px;
+      max-width: 280px;
       -webkit-touch-callout: none;
       backdrop-filter: blur(8px);
     }
 
     .victory-card button:active {
-      transform: translateY(-3px);
+      transform: translateY(-2px);
       box-shadow: 0 12px 32px rgba(59, 130, 246, 0.5), 0 0 30px rgba(59, 130, 246, 0.2);
     }
 
     @media (hover: hover) {
       .victory-card button:hover {
-        transform: translateY(-3px);
+        transform: translateY(-2px);
         box-shadow: 0 12px 32px rgba(59, 130, 246, 0.5), 0 0 30px rgba(59, 130, 246, 0.2);
       }
     }
@@ -419,23 +431,21 @@
       }
     }
 
-    @media (max-height: 600px) {
+    @media (max-height: 500px) {
       .ui-panel {
-        padding: 10px 14px;
-        font-size: 11px;
+        padding: 6px 10px;
+        font-size: 8px;
       }
 
       .emoji {
-        margin-bottom: 12px;
+        margin-bottom: 8px;
       }
 
       .victory-card {
-        padding: 20px 16px;
+        padding: 14px 12px;
       }
     }
   </style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
   <style>body { box-sizing: border-box; }</style>
  </head>
  <body>
@@ -443,7 +453,7 @@
    <canvas id="canvas"></canvas>
   </div>
   <div id="info-panel" class="ui-panel">
-   <div id="phase-name" style="letter-spacing: 0.5px;">
+   <div id="phase-name" style="letter-spacing: 0.3px;">
     FASE 1: Vias aéreas
    </div>
    <div class="score">
@@ -461,7 +471,7 @@
     ⚡ Perfeito
    </div>
    <div id="perf-score" class="perf-badge">
-    🎯 Desempenho
+    🎯 Bom
    </div>
   </div>
   <div id="phase-badge" class="ui-panel">
@@ -476,33 +486,25 @@
    </div>
   </div>
   <script>
-    // Criar bolhas flutuantes
     function createBubbles() {
-      const bubbleCount = 15;
+      const bubbleCount = 10;
       const container = document.body;
 
       for (let i = 0; i < bubbleCount; i++) {
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
         
-        // Tamanho aleatório entre 20px e 80px
-        const size = Math.random() * 60 + 20;
+        const size = Math.random() * 50 + 15;
         bubble.style.width = size + 'px';
         bubble.style.height = size + 'px';
-        
-        // Posição horizontal aleatória
         bubble.style.left = Math.random() * 100 + '%';
         
-        // Duração aleatória entre 12s e 25s para movimento lento
         const duration = Math.random() * 13 + 12;
         bubble.style.animationDuration = duration + 's';
-        
-        // Delay aleatório para começar em tempos diferentes
         bubble.style.animationDelay = Math.random() * 5 + 's';
         
         container.appendChild(bubble);
         
-        // Recrear a bolha quando a animação termina
         bubble.addEventListener('animationend', () => {
           bubble.remove();
           createBubbles();
@@ -510,14 +512,13 @@
       }
     }
 
-    // Configuração de recompensas por fase
     const caminhosRecompensas = {
       1: {
         emoji: '🌳',
         title: 'Vias aéreas Dominadas!',
         description: 'Você entendeu as vias aéreas! Agora explore a árvore brônquica!',
-        assetPath: 'assets/recompensas/fase1/fase1.png',
-        assetType: 'image',
+        assetPath: 'Respiratório-2026/ativos/recompensas/fase1/vídeos.mp4',
+        assetType: 'video',
         nextPhaseButton: '🌿 PRÓXIMA FASE'
       },
       2: {
@@ -554,7 +555,6 @@
       }
     };
 
-    // Cores por fase
     const fasesCores = {
       1: { bg: '#dbeafe', stroke: '#0284c7' },
       2: { bg: '#f0e5ff', stroke: '#a855f7' },
@@ -673,7 +673,7 @@
         { nome: 'Anterior ao Esôfago', icon: '🗣️' },
         { nome: 'Vértebra Torácica 4-5', icon: '🦴' },
         { nome: 'Inervação: Nervo Vago', icon: '🧠' },
-        { nome: 'Irrigação: Art. Tireóideas', icon: '💉' },
+        { nome: 'Irrigação: Art. Tireoideias', icon: '❤️' },
         { nome: 'Defesa contra Patógenos', icon: '🛡️' }
       ]
     };
@@ -689,6 +689,65 @@
     let phaseStartTime = 0;
     let phaseElapsedTime = 0;
     let timerInterval = null;
+    let allPhaseProgress = {};
+
+    const dataHandler = {
+      onDataChanged(data) {
+        if (data && data.length > 0) {
+          data.forEach(record => {
+            allPhaseProgress[record.phase] = {
+              score: record.score,
+              coins: record.coins,
+              time_elapsed: record.time_elapsed,
+              completed: record.completed
+            };
+          });
+        }
+      }
+    };
+
+    async function initDataSdk() {
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.log('Data SDK ready');
+        }
+      }
+    }
+
+    initDataSdk();
+
+    async function savePhaseProgress() {
+      if (!window.dataSdk) return;
+      
+      const phaseKey = phase;
+      const currentTime = Math.floor((Date.now() - phaseStartTime) / 1000) + phaseElapsedTime;
+      
+      const existingRecord = allPhaseProgress[phaseKey];
+      const progressData = {
+        phase: phaseKey,
+        score: score,
+        coins: coins,
+        time_elapsed: currentTime,
+        completed: score === tags.length,
+        timestamp: new Date().toISOString()
+      };
+
+      if (existingRecord) {
+        const result = await window.dataSdk.update({
+          __backendId: existingRecord.__backendId,
+          ...progressData
+        });
+        if (result.isOk) {
+          allPhaseProgress[phaseKey] = { ...progressData };
+        }
+      } else {
+        const result = await window.dataSdk.create(progressData);
+        if (result.isOk) {
+          allPhaseProgress[phaseKey] = { ...progressData };
+        }
+      }
+    }
 
     function playSound(type) {
       try {
@@ -767,7 +826,7 @@
       const perfScore = document.getElementById('perf-score');
       
       if (timeElapsed < 30) {
-        perfTime.textContent = '⚡ Relâmpago';
+        perfTime.textContent = '⚡ Rápido';
         perfTime.className = 'perf-badge';
       } else if (timeElapsed < 60) {
         perfTime.textContent = '✨ Ótimo';
@@ -785,13 +844,13 @@
         perfScore.textContent = '💯 Perfeito';
         perfScore.className = 'perf-badge';
       } else if (coinsPerItem >= 8) {
-        perfScore.textContent = '⭐ Excelente';
+        perfScore.textContent = '⭐ Ótimo';
         perfScore.className = 'perf-badge';
       } else if (coinsPerItem >= 5) {
         perfScore.textContent = '👍 Bom';
         perfScore.className = 'perf-badge';
       } else {
-        perfScore.textContent = '📚 Estudando';
+        perfScore.textContent = '📚 Aprend.';
         perfScore.className = 'perf-badge time-warn';
       }
     }
@@ -801,8 +860,8 @@
         this.data = data;
         this.x = x;
         this.y = y;
-        this.width = Math.max(140, Math.min(220, window.innerWidth * 0.22));
-        this.height = 48;
+        this.width = Math.max(110, Math.min(240, window.innerWidth * 0.22));
+        this.height = Math.max(42, Math.min(80, window.innerHeight * 0.1));
         this.snapped = false;
         this.el = null;
         this.createEl();
@@ -815,6 +874,7 @@
         this.el.style.left = this.x + 'px';
         this.el.style.top = this.y + 'px';
         this.el.style.width = this.width + 'px';
+        this.el.style.height = this.height + 'px';
 
         const start = (e) => {
           if (this.snapped) return;
@@ -865,19 +925,40 @@
 
       const data = FASES[p];
       const isMobile = window.innerWidth < 768;
-      const slotStartY = Math.max(70, window.innerHeight * 0.1);
-      const slotSpacing = Math.min(56, (window.innerHeight - 140) / data.length);
-      const slotWidth = Math.max(140, Math.min(220, window.innerWidth * 0.22));
-      const centerX = window.innerWidth / 2;
-      const distance = isMobile ? Math.max(160, window.innerWidth * 0.28) : Math.max(320, window.innerWidth * 0.32);
+      const isVerySmall = window.innerWidth < 480;
+      
+      let slotStartY, slotSpacing, slotWidth, slotHeight, centerX, distance;
+      
+      if (isVerySmall) {
+        slotStartY = Math.max(50, window.innerHeight * 0.08);
+        slotSpacing = Math.min(70, (window.innerHeight - 110) / Math.max(data.length, 1));
+        slotWidth = Math.max(110, Math.min(200, window.innerWidth * 0.2));
+        slotHeight = Math.max(42, Math.min(70, window.innerHeight * 0.09));
+        centerX = window.innerWidth / 2;
+        distance = Math.max(80, window.innerWidth * 0.2);
+      } else if (isMobile) {
+        slotStartY = Math.max(60, window.innerHeight * 0.1);
+        slotSpacing = Math.min(75, (window.innerHeight - 120) / Math.max(data.length, 1));
+        slotWidth = Math.max(120, Math.min(240, window.innerWidth * 0.24));
+        slotHeight = Math.max(48, Math.min(80, window.innerHeight * 0.11));
+        centerX = window.innerWidth / 2;
+        distance = Math.max(140, window.innerWidth * 0.26);
+      } else {
+        slotStartY = Math.max(70, window.innerHeight * 0.1);
+        slotSpacing = Math.min(80, (window.innerHeight - 140) / Math.max(data.length, 1));
+        slotWidth = Math.max(140, Math.min(260, window.innerWidth * 0.25));
+        slotHeight = Math.max(56, Math.min(90, window.innerHeight * 0.12));
+        centerX = window.innerWidth / 2;
+        distance = Math.max(280, window.innerWidth * 0.3);
+      }
 
       data.forEach((item, i) => {
         const isRight = i % 2 === 1;
         const slotX = isRight ? centerX + distance : centerX - distance - slotWidth;
         
-        slots.push({ x: slotX, y: slotStartY + i * slotSpacing, width: slotWidth, height: 48, nome: item.nome });
-        const tx = Math.random() * (window.innerWidth * 0.3) + 10;
-        const ty = window.innerHeight * 0.15 + Math.random() * (window.innerHeight * 0.7);
+        slots.push({ x: slotX, y: slotStartY + i * slotSpacing, width: slotWidth, height: slotHeight, nome: item.nome });
+        const tx = Math.random() * (window.innerWidth * 0.25) + 10;
+        const ty = window.innerHeight * 0.12 + Math.random() * (window.innerHeight * 0.76);
         const tag = new Tag(item, tx, ty);
         tags.push(tag);
       });
@@ -893,13 +974,13 @@
 
     function createConfetti() {
       const colors = ['#4ade80', '#60a5fa', '#fcd34d', '#fb7185', '#d8b4fe'];
-      for (let i = 0; i < 120; i++) {
+      for (let i = 0; i < 80; i++) {
         setTimeout(() => {
           const c = document.createElement('div');
           c.className = 'confetti';
           c.style.left = Math.random() * 100 + '%';
           c.style.top = '-20px';
-          c.style.width = Math.random() * 8 + 3 + 'px';
+          c.style.width = Math.random() * 6 + 2 + 'px';
           c.style.height = c.style.width;
           c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
           c.style.borderRadius = '50%';
@@ -949,6 +1030,7 @@
     function showVictory() {
       if (timerInterval) clearInterval(timerInterval);
       
+      savePhaseProgress();
       createConfetti();
       playSound('victory');
       const screen = document.getElementById('victory-screen');
@@ -971,6 +1053,7 @@
       if (phase < 5) {
         btn.onclick = () => {
           phase++;
+          phaseElapsedTime += finalTime;
           screen.classList.add('hidden');
           nextPhase();
         };
@@ -991,7 +1074,7 @@
       document.getElementById('phase-badge').className = 'ui-panel';
       
       const phaseNames = {
-        1: { name: 'FASE 1: TRONCO', badge: '🌳 FASE 1' },
+        1: { name: 'FASE 1: Vias aéreas', badge: '🌳 FASE 1' },
         2: { name: 'FASE 2: ÁRVORE BRÔNQUICA', badge: '🌿 FASE 2' },
         3: { name: 'FASE 3: ALVÉOLOS', badge: '💨 FASE 3' },
         4: { name: 'FASE 4: FILTRAÇÃO NASAL', badge: '🧼 FASE 4' },
@@ -1020,11 +1103,11 @@
         const centerX = canvas.width / 2;
         
         ctx.strokeStyle = c.stroke;
-        ctx.lineWidth = Math.max(2.5, canvas.width * 0.004);
+        ctx.lineWidth = Math.max(2, canvas.width * 0.003);
         ctx.globalAlpha = 0.25;
         ctx.beginPath();
-        ctx.moveTo(centerX, slots[0].y - 20);
-        ctx.lineTo(centerX, slots[slots.length - 1].y + slots[slots.length - 1].height + 20);
+        ctx.moveTo(centerX, slots[0].y - 15);
+        ctx.lineTo(centerX, slots[slots.length - 1].y + slots[slots.length - 1].height + 15);
         ctx.stroke();
         ctx.globalAlpha = 1;
 
@@ -1032,7 +1115,7 @@
           const isRight = i % 2 === 1;
           
           ctx.strokeStyle = c.stroke;
-          ctx.lineWidth = Math.max(2, canvas.width * 0.0025);
+          ctx.lineWidth = Math.max(1.5, canvas.width * 0.002);
           ctx.globalAlpha = 0.3;
           ctx.beginPath();
           ctx.moveTo(centerX, slot.y + slot.height / 2);
@@ -1042,14 +1125,14 @@
 
           ctx.fillStyle = c.bg;
           ctx.strokeStyle = c.stroke;
-          ctx.lineWidth = Math.max(2, canvas.width * 0.0025);
+          ctx.lineWidth = Math.max(1.5, canvas.width * 0.002);
           ctx.beginPath();
-          ctx.roundRect(slot.x, slot.y, slot.width, slot.height, 6);
+          ctx.roundRect(slot.x, slot.y, slot.width, slot.height, 4);
           ctx.fill();
           ctx.stroke();
 
           ctx.fillStyle = c.stroke;
-          ctx.font = `bold ${Math.max(20, canvas.width * 0.03)}px Sora`;
+          ctx.font = `bold ${Math.max(14, canvas.width * 0.025)}px Sora`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('?', slot.x + slot.width / 2, slot.y + slot.height / 2);
@@ -1057,15 +1140,15 @@
       }
 
       ctx.fillStyle = '#e2e8f0';
-      ctx.font = `bold ${Math.max(16, canvas.width * 0.028)}px Sora`;
+      ctx.font = `bold ${Math.max(12, canvas.width * 0.02)}px Sora`;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      const titles = { 1: '🌳 TRONCO', 2: '🌿 ÁRVORE BRÔNQUICA', 3: '💨 ALVÉOLOS', 4: '🧼 FILTRAÇÃO NASAL', 5: '📿 TRAQUEIA' };
-      ctx.fillText(titles[phase], 32, 18);
+      const titles = { 1: '🌳 Vias aéreas', 2: '🌿 ÁRVORE BRÔNQUICA', 3: '💨 ALVÉOLOS', 4: '🧼 FILTRAÇÃO NASAL', 5: '📿 TRAQUEIA' };
+      ctx.fillText(titles[phase], Math.max(16, canvas.width * 0.02), 10);
 
       ctx.fillStyle = '#94a3b8';
-      ctx.font = `600 ${Math.max(12, canvas.width * 0.016)}px Sora`;
-      ctx.fillText('✋ Arraste os rótulos para os espaços corretos', 32, canvas.height - 22);
+      ctx.font = `600 ${Math.max(9, canvas.width * 0.012)}px Sora`;
+      ctx.fillText('✋ Arraste os rótulos para os espaços corretos', Math.max(16, canvas.width * 0.02), canvas.height - Math.max(12, canvas.height * 0.02));
     }
 
     document.addEventListener('mousemove', (e) => {
@@ -1102,11 +1185,9 @@
       draw();
     }
 
-    // Iniciar criação de bolhas
     createBubbles();
-
     initPhase(1);
     draw();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ceb27b5a3d3d283',t:'MTc3MTIyNTA5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cf21235c40a4fb4',t:'MTc3MTI5NzYxMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
